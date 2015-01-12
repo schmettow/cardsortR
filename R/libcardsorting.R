@@ -43,7 +43,7 @@ read.lol<-function(node,graph=NULL,root="ROOT",mode="down",weight=1){
 }
 
 
-proxima <- function(list_of_graphs, method = "jaccard") {
+proxima <- function(list_of_graphs, method = "jaccard", diag.value = NA) {
   if(method != "jaccard") stop("Currently, only Jaccard proximity scores are supported")
 	LPM = NULL
 	for (graph.name in names(list_of_graphs)){
@@ -88,7 +88,7 @@ proxima <- function(list_of_graphs, method = "jaccard") {
 	LPM <- rbind(LPM, data.frame(ID = LPM$ID, i = LPM$j, j = LPM$i, proximity = LPM$proximity))
 	## adding diagonale
 	diag <- expand.grid(ID = unique(LPM$ID), i = N) %>% 
-		mutate(j = i, proximity = 1)
+		mutate(j = i, proximity = diag.value)
 	LPM <- rbind(LPM, diag)
 	## converting to factors
 	LPM$ID <- as.factor(LPM$ID)
