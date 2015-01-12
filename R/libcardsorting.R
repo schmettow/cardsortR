@@ -196,7 +196,7 @@ g_legend<-function(a.gplot){
 ##' @export
 ##' @author Chris Wallace
 ggheatmap.show <- function(L, col.width=0.2, row.width=0.2) {
-	grid.newpage()
+	grid.newpage)(
 	top.layout <- grid.layout(nrow = 2, ncol = 2,
 														widths = unit(c(1-row.width,row.width), "null"),
 														heights = unit(c(col.width,1-row.width), "null"))
