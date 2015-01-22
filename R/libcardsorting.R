@@ -7,7 +7,7 @@ library(gplots) ## check me
 library(ggplot2)
 library(RColorBrewer)
 library(ggdendro)
-library(reshape)
+#library(reshape)
 library(grid)
 
 

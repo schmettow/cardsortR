@@ -1,0 +1,10 @@
+Prio HIGH:
+* write a converter single-level membership table -> Jaccard LPM
+
+Prio MEDIUM:
+* document read.lol and proxima
+* replace heatmap.2 by ggheatmap
+* get rid of reshape library (used by ggheatmap)
+
+Prio LOW:
+* replace graph/RBGL by igraph
