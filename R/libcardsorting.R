@@ -2,6 +2,7 @@
 library(RBGL) ## BioConductor package providing an implementation of graph theory
 library(plyr)
 library(dplyr)
+library(tidyr)
 library(reshape2)
 library(gplots) ## check me
 library(ggplot2)
@@ -41,6 +42,32 @@ read.lol<-function(node,graph=NULL,root="ROOT",mode="down",weight=1){
 	}
 	graph
 }
+
+
+read.memtable <- function(memtab){
+  ## makes a list of lists from a membership table as provided by concept Codify
+  ## limited to single level card sorts
+  ##
+  ## memtable is required to have the following structure:
+  ## |Subject|Group|1|2|...|n|
+  ## 1 = is in group, 0 otherwise
+  memtab$Subject = as.character(memtab$Subject)
+  memtab$Group = as.character(memtab$Group)
+  LOL = list()
+  
+  for (s in unique(memtab$Subject)){
+    this.subject = filter(memtab, Subject == s)
+    for (g in unique(this.subject$Group)){
+      this.group = filter(this.subject, Group == g)[c(-1, -2)]
+      this.items = colnames(this.group)[this.group == 1]
+      LOL[[s]][[paste0("G",g)]] = as.list(this.items)
+        #
+    }
+  }
+  LOL
+
+}
+
 
 
 proxima <- function(list_of_graphs, method = "jaccard", diag.value = NA) {
