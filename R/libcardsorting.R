@@ -71,53 +71,54 @@ read.memtable <- function(memtab){
 
 
 proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.value = NA) {
+  
   if(method != "jaccard") stop("Currently, only Jaccard proximity scores are supported")
-	LPM = NULL
-	for (graph.name in names(list_of_graphs)){
-		graph <- list_of_graphs[[graph.name]]
-		if(method == "jaccard"){
-			## From a graph make an LDM with Jacard distance measures
-			## x.name changes the name of the column carrying the distnace measure
-			# node names
-			x.name="proximity"
-			leaves.only = TRUE
-			if(leaves.only){
-				N <- leaves(graph, degree.dir="out")
-			}else{
-				N <- nodes(graph)
-			}
-			N <- sort(N)
-			# list of ancestors per node
+  LPM = NULL
+  for (graph.name in names(list_of_graphs)){
+    graph <- list_of_graphs[[graph.name]]
+    if(method == "jaccard"){
+      ## From a graph make an LDM with Jacard distance measures
+      ## x.name changes the name of the column carrying the distnace measure
+      # node names
+      x.name="proximity"
+      leaves.only = TRUE
+      if(leaves.only){
+        N <- leaves(graph, degree.dir="out")
+      }else{
+        N <- nodes(graph)
+      }
+      N <- sort(N)
+      # list of ancestors per node
       # for optimization purposes, first the graph is reversed once
       rgraph <- reverseEdgeDirections(graph)
       # then retrieve the descendants
-			A <- llply(N,descendants,rgraph)
-			names(A)<-N
-			# upper triangle combination of node(name)s
-			AA <- cbind(t(combn(A,2)))
-			NN <- cbind(t(combn(N,2)))
-			# jaccard distance score, 
+      A <- llply(N,descendants,rgraph)
+      names(A)<-N
+      # upper triangle combination of node(name)s
+      AA <- cbind(t(combn(A,2)))
+      NN <- cbind(t(combn(N,2)))
+      # jaccard distance score, 
       # a constant of two is added to the divisor to distinguish proximity of the node to itself (the diagonale)
       # from proximity of two nodes in the same group
-			Jacc <- function(c) length(intersect(c[[1]],c[[2]]))/ (length(union(c[[1]],c[[2]])) + 2)
-			# Dot it!
-			J <- apply(AA,1,Jacc)
-			this.LPM <- data.frame(ID = graph.name, i=NN[,1],j=NN[,2], proximity = J, stringsAsFactors=F)
-			# colnames(this.LPM)<-c("i","j",x.name)
-			if(is.null(LPM)) {
-				LPM <- this.LPM
-			} else {
-				LPM <- rbind(LPM, this.LPM)
-			}
-		}
-	}
-	## adding mirrored values
-	LPM <- rbind(LPM, data.frame(ID = LPM$ID, i = LPM$j, j = LPM$i, proximity = LPM$proximity))
-	## adding diagonale
-	diag <- expand.grid(ID = unique(LPM$ID), i = N) %>% 
-		mutate(j = i, proximity = diag.value)
-	LPM <- rbind(LPM, diag)
-
+      Jacc <- function(c) (length(intersect(c[[1]],c[[2]]))-1)/ (length(union(c[[1]],c[[2]]))-1)
+      # Dot it!
+      J <- apply(AA,1,Jacc)
+      this.LPM <- data.frame(ID = graph.name, i=NN[,1],j=NN[,2], proximity = J, stringsAsFactors=F)
+      # colnames(this.LPM)<-c("i","j",x.name)
+      if(is.null(LPM)) {
+        LPM <- this.LPM
+      } else {
+        LPM <- rbind(LPM, this.LPM)
+      }
+    }
+  }
+  ## adding mirrored values
+  LPM <- rbind(LPM, data.frame(ID = LPM$ID, i = LPM$j, j = LPM$i, proximity = LPM$proximity))
+  ## adding diagonale
+  diag <- expand.grid(ID = unique(LPM$ID), i = N) %>% 
+    mutate(j = i, proximity = diag.value)
+  LPM <- rbind(LPM, diag)
+  
   ## Adding labels
   if(!is.null(Labels)){
     LPM <- LPM %>%
@@ -133,9 +134,21 @@ proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.valu
   LPM$i <- as.factor(LPM$i)
   LPM$j <- as.factor(LPM$j)
   
-	return(LPM)
+  return(LPM)
 }
 
+
+distima <- function(proxima){
+  DM <- proxima %>%
+    group_by(i,j) %>% 
+    dplyr::summarize(proximity = mean(proximity)) %>%
+    mutate(dissimilarity = 1 - proximity) %>%  
+    dcast(formula = j ~ i, value.var="dissimilarity") %>% 
+    select(-j) %>%
+    as.matrix()
+  rownames(DM) <- colnames(DM)
+  DM
+}
 
 ## Basic graph functions ####
 
