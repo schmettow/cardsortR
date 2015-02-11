@@ -71,7 +71,6 @@ read.memtable <- function(memtab){
 
 
 proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.value = NA) {
-  list_of_graphs = Graphs[1:3]
   if(method != "jaccard") stop("Currently, only Jaccard proximity scores are supported")
 	LPM = NULL
 	for (graph.name in names(list_of_graphs)){
