@@ -70,7 +70,7 @@ read.memtable <- function(memtab){
 
 
 
-proxima <- function(list_of_graphs, method = "jaccard", diag.value = NA) {
+proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.value = NA) {
   if(method != "jaccard") stop("Currently, only Jaccard proximity scores are supported")
 	LPM = NULL
 	for (graph.name in names(list_of_graphs)){
@@ -117,15 +117,26 @@ proxima <- function(list_of_graphs, method = "jaccard", diag.value = NA) {
 	diag <- expand.grid(ID = unique(LPM$ID), i = N) %>% 
 		mutate(j = i, proximity = diag.value)
 	LPM <- rbind(LPM, diag)
-	## converting to factors
-	LPM$ID <- as.factor(LPM$ID)
-	LPM$i <- as.factor(LPM$i)
-	LPM$j <- as.factor(LPM$j)
-	#return(structure(LDM, class = c("proxima")))
+
+  ## Adding labels
+  if(!is.null(Labels)){
+    LPM <- LPM %>%
+      mutate(i = as.character(i), j = as.character(j)) %>%
+      left_join(select(Labels, ID, label = label_i), by = c("i" = "ID")) %>%
+      rename(i = label_i) %>%
+      left_join(select(Labels, ID, label_i = label), by = c("i" = "ID")) %>%
+      left_join(select(Labels, ID, label_j = label), by = c("j" = "ID")) %>%
+      mutate(i = label_i, j = label_j) %>%
+      select(-label_i, -label_j)
+  }
+  
+  ## converting to factors
+  LPM$ID <- as.factor(LPM$ID)
+  LPM$i <- as.factor(LPM$i)
+  LPM$j <- as.factor(LPM$j)
+  
 	return(LPM)
 }
-
-
 
 
 ## Basic graph functions ####
