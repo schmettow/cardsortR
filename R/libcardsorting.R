@@ -138,11 +138,11 @@ proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.valu
 }
 
 
-distima <- function(proxima){
+distima <- function(proxima,agg.func = mean, upper = 1){
   DM <- proxima %>%
     group_by(i,j) %>% 
-    dplyr::summarize(proximity = mean(proximity)) %>%
-    mutate(dissimilarity = 1 - proximity) %>%  
+    summarize_(proximity = ~agg.func(proximity)) %>%
+    mutate(dissimilarity = upper - proximity) %>%  
     dcast(formula = j ~ i, value.var="dissimilarity") %>% 
     select(-j) %>%
     as.matrix()
