@@ -123,10 +123,10 @@ proxima <- function(list_of_graphs, Labels = NULL, method = "jaccard", diag.valu
   if(!is.null(Labels)){
     LPM <- LPM %>%
       mutate(i = as.character(i), j = as.character(j)) %>%
-      left_join(select(Labels, ID, label_i = label), by = c("i" = "ID")) %>%
-      left_join(select(Labels, ID, label_j = label), by = c("j" = "ID")) %>%
+      left_join(dplyr::select(Labels, ID, label_i = label), by = c("i" = "ID")) %>%
+      left_join(dplyr::select(Labels, ID, label_j = label), by = c("j" = "ID")) %>%
       mutate(i = label_i, j = label_j) %>%
-      select(-label_i, -label_j)
+      dplyr::select(-label_i, -label_j)
   }
   
   ## converting to factors
@@ -144,7 +144,7 @@ distima <- function(proxima,agg.func = mean, upper = 1){
     summarize_(proximity = ~agg.func(proximity)) %>%
     mutate(dissimilarity = upper - proximity) %>%  
     dcast(formula = j ~ i, value.var="dissimilarity") %>% 
-    select(-j) %>%
+    dplyr::select(-j) %>%
     as.matrix()
   rownames(DM) <- colnames(DM)
   DM
